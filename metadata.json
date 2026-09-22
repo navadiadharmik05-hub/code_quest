@@ -1,0 +1,6 @@
+{
+  "name": "CodeQuest",
+  "description": "Gamified computational learning engine with daily quests, curriculum DAG progression tree, trophy hall accolades, and interactive code practice arena.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
