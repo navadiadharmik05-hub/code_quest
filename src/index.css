@@ -1,224 +1,157 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface-container-lowest: #0c0d17;
-  --color-surface-container-low: #1a1b25;
-  --color-surface-container: #1e1f2a;
-  --color-surface-container-high: #282934;
-  --color-surface-container-highest: #33343f;
-  --color-surface-dim: #12131d;
-  --color-surface-bright: #383844;
-  --color-surface: #12131d;
-  --color-surface-variant: #33343f;
-  --color-background: #12131d;
-  --color-on-background: #e2e1f0;
-  --color-on-surface: #e2e1f0;
-  --color-on-surface-variant: #cbc3d7;
-  --color-outline: #958ea0;
-  --color-outline-variant: #494454;
-  --color-inverse-surface: #e2e1f0;
-  --color-inverse-on-surface: #2f303b;
-  --color-inverse-primary: #6d3bd7;
-  --color-surface-tint: #d0bcff;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
-  --color-primary: #d0bcff;
-  --color-primary-container: #a078ff;
-  --color-on-primary: #3c0091;
-  --color-on-primary-container: #340080;
-  --color-primary-fixed: #e9ddff;
-  --color-primary-fixed-dim: #d0bcff;
-  --color-on-primary-fixed: #23005c;
-  --color-on-primary-fixed-variant: #5516be;
+  --color-canvas: #07080A;
+  --color-canvas-dark: #0B0D11;
+  --color-tile: #11141A;
+  --color-tile-locked: #0D1015;
+  --color-card-surface: #13171F;
+  --color-card-border: #1F242C;
+  --color-brand-terracotta: #DE5C34;
+  --color-terracotta: #DE5C34;
+  --color-terracotta-hover: #e76c46;
+  --color-terracotta-dark: #531200;
+  --color-pine: #388E64;
+  --color-pine-dim: #234F3A;
+  --color-amber-gold: #F59E0B;
+  --color-amber: #D4973B;
+  --color-rust: #C84646;
+  --color-slate-border: #1A202A;
+  --color-slate-wire: #1E2633;
+  --color-tag-bg: #141820;
+  --color-text-dim: #6E788A;
+  --color-muted: #8690A0;
+  --color-label: #ADB7C6;
+  --color-brand-surface: #15181E;
+  --color-brand-muted: #8C94A4;
+  --color-brand-light: #F1F3F7;
+  --color-surface-dim: #111317;
+  --color-surface: #1B2028;
+  --color-subtle: #12151B;
+  --color-hairline: #262C36;
 
-  --color-secondary: #4cd7f6;
-  --color-secondary-container: #03b5d3;
-  --color-on-secondary: #003640;
-  --color-on-secondary-container: #00424e;
-  --color-secondary-fixed: #acedff;
-  --color-secondary-fixed-dim: #4cd7f6;
-  --color-on-secondary-fixed: #001f26;
-  --color-on-secondary-fixed-variant: #004e5c;
-
-  --color-tertiary: #ffb95f;
-  --color-tertiary-container: #ca8100;
-  --color-on-tertiary: #472a00;
-  --color-on-tertiary-container: #3e2400;
-  --color-tertiary-fixed: #ffddb8;
-  --color-tertiary-fixed-dim: #ffb95f;
-  --color-on-tertiary-fixed: #2a1700;
-  --color-on-tertiary-fixed-variant: #653e00;
-
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
-  --color-on-error: #690005;
-  --color-on-error-container: #ffdad6;
-
-  --spacing-space-xs: 0.25rem;
-  --spacing-space-sm: 0.5rem;
-  --spacing-space-md: 1rem;
-  --spacing-space-lg: 1.5rem;
-  --spacing-space-xl: 2rem;
-  --spacing-gutter: 1.5rem;
-  --spacing-gutter-mobile: 1rem;
-  --spacing-margin: 2rem;
-  --spacing-margin-mobile: 1rem;
+  /* Vault custom colors */
+  --color-vault-bg: #0B0D11;
+  --color-vault-card: #12151B;
+  --color-vault-cardHover: #161B22;
+  --color-vault-elevated: #1B2028;
+  --color-vault-border: #1F242C;
+  --color-vault-borderHighlight: #2E3642;
 }
 
 @layer base {
-  html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #0c0d17;
-    color: #e2e1f0;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
   body {
+    background-color: #07080A;
+    color: #E2E2E6;
+    font-family: 'Space Grotesk', sans-serif;
     overscroll-behavior: none;
   }
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  * {
-    scrollbar-width: none;
-  }
 }
 
-.font-display {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 800;
-}
-.text-display {
-  font-size: 40px;
-  line-height: 48px;
-  letter-spacing: -0.03em;
-}
-
-.font-headline-lg {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 700;
-}
-.text-headline-lg {
-  font-size: 28px;
-  line-height: 36px;
-  letter-spacing: -0.02em;
-}
-
-.font-headline-md {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 600;
-}
-.text-headline-md {
-  font-size: 20px;
-  line-height: 28px;
-  letter-spacing: -0.015em;
-}
-
-.font-headline-sm {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 600;
-}
-.text-headline-sm {
-  font-size: 16px;
-  line-height: 24px;
-  letter-spacing: -0.01em;
-}
-
-.font-body-lg {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 400;
-}
-.text-body-lg {
-  font-size: 16px;
-  line-height: 26px;
-}
-
-.font-body-md {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 400;
-}
-.text-body-md {
-  font-size: 14px;
-  line-height: 22px;
-}
-
-.font-body-sm {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 400;
-}
-.text-body-sm {
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.font-label-md {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-}
-.text-label-md {
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.04em;
-}
-
-.font-label-sm {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-}
-.text-label-sm {
-  font-size: 10px;
-  line-height: 14px;
-  letter-spacing: 0.06em;
-}
-
-.font-code-inline {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-}
-.text-code-inline {
-  font-size: 13px;
-  line-height: 20px;
-}
-
-.font-code-block {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 400;
-}
-.text-code-block {
-  font-size: 13px;
-  line-height: 22px;
-}
-
+/* Material symbols */
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
-@keyframes slideInRight {
-  from {
-    transform: translateX(28px);
-    opacity: 0.85;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.material-symbols-fill {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
 }
 
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-28px);
-    opacity: 0.85;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+/* Coordinate Grid 40px with Hairline Slate and Subtle Crosshairs */
+.bg-tech-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(20, 25, 35, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 25, 35, 0.45) 1px, transparent 1px);
 }
 
-.transition-push {
-  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Animated travelling spark along active SVG path */
+@keyframes pulseParticle {
+  0% { stroke-dashoffset: 280; }
+  100% { stroke-dashoffset: 0; }
+}
+.active-circuit-pulse {
+  stroke-dasharray: 10 60;
+  animation: pulseParticle 2.2s linear infinite;
 }
 
-.transition-push-back {
-  animation: slideInLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.heart-pulse {
+  animation: heartPulse 3s ease-in-out infinite;
 }
 
+/* Locked card illustration diagonal hazard scanline pattern */
+.locked-scanlines {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.35),
+    rgba(0, 0, 0, 0.35) 4px,
+    rgba(255, 255, 255, 0.02) 4px,
+    rgba(255, 255, 255, 0.02) 8px
+  );
+}
+
+/* Chamfered industrial hardware cartridge edge */
+.cartridge-chamfer {
+  clip-path: polygon(
+    0 8px,
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+}
+
+/* Tooltip styling */
+.has-tooltip:hover .tooltip-target {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0E1013;
+}
+::-webkit-scrollbar-thumb {
+  background: #262C36;
+  border-radius: 3px;
+}

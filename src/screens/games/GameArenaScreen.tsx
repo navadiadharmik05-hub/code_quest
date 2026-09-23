@@ -24,12 +24,12 @@ const resolveComponent = (mod: any, name: string): React.FC<GameProps> => {
 };
 
 const GAME_COMPONENTS: Record<string, React.FC<GameProps>> = {
-  'syntax-dungeon': resolveComponent(SyntaxModule, 'SyntaxDungeonGame'),
-  'execution-arena': resolveComponent(ExecModule, 'ExecutionArenaGame'),
-  'sort-arena': resolveComponent(SortModule, 'SortArenaGame'),
-  'tower-of-hanoi': resolveComponent(HanoiModule, 'HanoiGame'),
-  'bst-quest': resolveComponent(BstModule, 'BstQuestGame'),
-  'stack-queue-boss': resolveComponent(StackModule, 'StackQueueGame'),
+  'syntax-dungeon': resolveComponent(SyntaxModule, 'SyntaxDungeon'),
+  'execution-arena': resolveComponent(ExecModule, 'ExecutionArena'),
+  'sort-arena': resolveComponent(SortModule, 'SortArena'),
+  'tower-of-hanoi': resolveComponent(HanoiModule, 'TowerOfHanoi'),
+  'bst-quest': resolveComponent(BstModule, 'BstQuest'),
+  'stack-queue-boss': resolveComponent(StackModule, 'StackQueueBoss'),
 };
 
 export const GameArenaScreen: React.FC<GameArenaScreenProps> = ({

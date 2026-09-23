@@ -1,143 +1,104 @@
-import React, { useState } from 'react';
-import { GameProps } from './GameTypes';
+import React, { useState, useEffect } from 'react';
 
-const COLORS = ['#f9c74f', '#ff6b9d', '#7b6ff7', '#43e97b', '#00d4ff'];
-const MIN_MOVES: Record<number, number> = { 3: 7, 4: 15, 5: 31 };
+interface TowerOfHanoiProps {
+  onComplete: (stars: number, xp: number) => void;
+  onDamage?: () => void;
+}
 
-export const HanoiGame: React.FC<GameProps> = ({ onNavigate, onLoseHeart, onWin }) => {
-  const [diskCount, setDiskCount] = useState<number>(3);
-  const [pegs, setPegs] = useState<number[][]>([[3, 2, 1], [], []]);
-  const [selectedPeg, setSelectedPeg] = useState<number | null>(null);
-  const [moves, setMoves] = useState<number>(0);
-  const [won, setWon] = useState<boolean>(false);
+export const TowerOfHanoi: React.FC<TowerOfHanoiProps> = ({ onComplete, onDamage }) => {
+  const [towers, setTowers] = useState<number[][]>([[3, 2, 1], [], []]);
+  const [selectedTower, setSelectedTower] = useState<number | null>(null);
+  const [moves, setMoves] = useState(0);
+  const [hearts, setHearts] = useState(5);
+  const optimalMoves = 7; // For 3 discs: 2^3 - 1 = 7
 
-  const resetGame = (count: number) => {
-    setDiskCount(count);
-    const initialPeg: number[] = [];
-    for (let i = count; i >= 1; i--) initialPeg.push(i);
-    setPegs([initialPeg, [], []]);
-    setSelectedPeg(null);
-    setMoves(0);
-    setWon(false);
-  };
-
-  const handlePegClick = (pegIdx: number) => {
-    if (won) return;
-
-    if (selectedPeg === null) {
-      if (pegs[pegIdx].length === 0) return;
-      setSelectedPeg(pegIdx);
+  const handleTowerClick = (index: number) => {
+    if (selectedTower === null) {
+      if (towers[index].length > 0) setSelectedTower(index);
     } else {
-      if (selectedPeg === pegIdx) {
-        setSelectedPeg(null);
+      if (selectedTower === index) {
+        setSelectedTower(null);
         return;
       }
 
-      const sourceDisk = pegs[selectedPeg][pegs[selectedPeg].length - 1];
-      const targetPegDisks = pegs[pegIdx];
+      const source = towers[selectedTower];
+      const target = towers[index];
+      const disc = source[source.length - 1];
 
-      if (targetPegDisks.length > 0 && targetPegDisks[targetPegDisks.length - 1] < sourceDisk) {
-        if (onLoseHeart) onLoseHeart();
-        setSelectedPeg(null);
-        return;
-      }
+      // Validation
+      if (target.length === 0 || target[target.length - 1] > disc) {
+        const newTowers = towers.map((t, idx) => {
+          if (idx === selectedTower) return t.slice(0, -1);
+          if (idx === index) return [...t, disc];
+          return t;
+        });
 
-      const updated = pegs.map((arr, i) => {
-        if (i === selectedPeg) return arr.slice(0, -1);
-        if (i === pegIdx) return [...arr, sourceDisk];
-        return arr;
-      });
-
-      const nextMoves = moves + 1;
-      setPegs(updated);
-      setMoves(nextMoves);
-      setSelectedPeg(null);
-
-      if (updated[2].length === diskCount) {
-        setWon(true);
-        if (onWin) onWin('tower-of-hanoi');
+        setTowers(newTowers);
+        setMoves((m) => m + 1);
+        setSelectedTower(null);
+      } else {
+        // Illegal placement
+        setHearts((h) => {
+          const next = Math.max(0, h - 1);
+          if (onDamage) onDamage();
+          return next;
+        });
+        setSelectedTower(null);
       }
     }
   };
 
+  // Check victory
+  useEffect(() => {
+    if (towers[2].length === 3) {
+      const stars = moves <= optimalMoves ? 3 : moves <= optimalMoves + 3 ? 2 : 1;
+      onComplete(stars, 300);
+    }
+  }, [towers, moves, optimalMoves, onComplete]);
+
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 flex flex-col gap-6">
-      <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-xl shadow-sm">
-        <div>
-          <span className="text-label-sm font-label-sm text-secondary uppercase tracking-widest">Game 04</span>
-          <h1 className="text-headline-lg font-bold text-on-surface">Tower of Hanoi</h1>
+    <div className="flex flex-col h-full w-full bg-[#0E1013] p-6 text-white font-mono select-none">
+      <div className="flex justify-between items-center bg-[#15181E] border border-[#262C36] px-5 py-3 rounded-lg mb-6">
+        <span className="text-[#DE5C34] text-xs font-bold uppercase tracking-wider">GAME 04 // POWER CORE RESONANCE (HANOI)</span>
+        <div className="flex items-center gap-6 text-xs">
+          <div>MOVES: <span className="text-amber-400 font-bold">{moves}</span> (OPTIMAL: {optimalMoves})</div>
+          <div>LIVES: <span className="text-red-400 font-bold">{'♥'.repeat(hearts)}{'♡'.repeat(Math.max(0, 5 - hearts))}</span></div>
         </div>
-        <button
-          className="px-4 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md cursor-pointer"
-          onClick={() => onNavigate('dashboard-quests', 'push_back')}
-        >
-          Exit
-        </button>
       </div>
 
-      <div className="bg-surface-container p-6 rounded-xl shadow-md flex flex-col gap-6">
-        <div className="flex justify-between items-center">
-          <div className="flex gap-2">
-            {[3, 4, 5].map((count) => (
-              <button
-                key={count}
-                onClick={() => resetGame(count)}
-                className={`px-4 py-1.5 rounded-lg font-label-md text-label-md cursor-pointer ${
-                  diskCount === count ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'
-                }`}
-              >
-                {count} Disks
-              </button>
-            ))}
-          </div>
-          <div className="font-code-inline text-label-md text-on-surface-variant">
-            Moves: <strong className="text-tertiary">{moves}</strong> (Optimal: {MIN_MOVES[diskCount]})
-          </div>
-        </div>
+      <div className="flex-1 bg-[#12151B] border border-[#262C36] rounded-xl p-8 flex flex-col justify-end">
+        <div className="grid grid-cols-3 gap-8 items-end h-64 border-b-4 border-[#262C36] pb-2">
+          {towers.map((tower, tIdx) => (
+            <button
+              key={tIdx}
+              onClick={() => handleTowerClick(tIdx)}
+              className={`flex flex-col-reverse items-center justify-start h-full relative group transition-all ${
+                selectedTower === tIdx ? 'bg-[#DE5C34]/10 rounded-t-xl' : ''
+              }`}
+            >
+              {/* Peg Rod */}
+              <div className="absolute w-2.5 h-48 bg-[#262C36] rounded-t-full bottom-0" />
 
-        <div className="relative h-64 bg-surface-container-lowest rounded-xl flex items-end justify-around pb-6 pt-12">
-          {[0, 1, 2].map((pegIdx) => {
-            const isSelected = selectedPeg === pegIdx;
-            return (
-              <div
-                key={pegIdx}
-                onClick={() => handlePegClick(pegIdx)}
-                className={`relative w-1/4 h-full flex flex-col items-center justify-end cursor-pointer rounded-lg transition-all ${
-                  isSelected ? 'bg-primary/10' : 'hover:bg-surface-container-high/40'
-                }`}
-              >
-                <div className="absolute top-6 bottom-0 w-2 bg-surface-container-highest rounded-t pointer-events-none" />
-                <div className="z-10 flex flex-col-reverse items-center gap-1 w-full pb-1 pointer-events-none">
-                  {pegs[pegIdx].map((disk, dIdx) => {
-                    const widthPercent = (disk / diskCount) * 80;
-                    return (
-                      <div
-                        key={dIdx}
-                        style={{
-                          width: `${widthPercent}%`,
-                          backgroundColor: COLORS[disk - 1] || '#999',
-                        }}
-                        className="h-6 rounded-full flex items-center justify-center font-code-inline text-[11px] font-bold text-slate-900 shadow"
-                      >
-                        {disk}
-                      </div>
-                    );
-                  })}
-                </div>
-                <span className="mt-2 font-headline-sm text-label-sm text-outline">
-                  {['Peg A', 'Peg B', 'Peg C'][pegIdx]}
-                </span>
-              </div>
-            );
-          })}
+              {/* Stacked Discs */}
+              {tower.map((size) => (
+                <div
+                  key={size}
+                  style={{ width: `${size * 30 + 40}px` }}
+                  className={`h-7 rounded mb-1 z-10 border transition-all ${
+                    size === 1
+                      ? 'bg-amber-500 border-amber-300'
+                      : size === 2
+                      ? 'bg-orange-600 border-orange-400'
+                      : 'bg-[#DE5C34] border-red-400'
+                  }`}
+                />
+              ))}
+              <span className="absolute -bottom-8 text-xs font-bold text-[#8C94A4]">
+                PYLON 0{tIdx + 1}
+              </span>
+            </button>
+          ))}
         </div>
-
-        {won && (
-          <div className="p-4 rounded-xl bg-surface-container-low border border-secondary text-center space-y-2">
-            <h3 className="text-headline-sm font-bold text-secondary">Tower Successfully Conquered!</h3>
-            <p className="text-body-sm text-tertiary font-code-inline">+50 XP Awarded</p>
-          </div>
-        )}
       </div>
     </div>
   );

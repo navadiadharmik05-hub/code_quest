@@ -1,250 +1,188 @@
 import React, { useState, useEffect } from 'react';
-import { GameProps } from './GameTypes';
 
-interface Step {
-  l: number;
-  v: Record<string, string>;
-  s: string[];
-  o: string;
+interface ExecutionArenaProps {
+  onComplete: (stars: number, xp: number) => void;
+  onDamage?: () => void;
 }
 
-const PROGS: Record<string, { lines: string[]; trace: Step[] }> = {
-  sumArr: {
-    lines: [
-      'function sum(arr) {',
-      '  let total = 0;',
-      '  for (let i=0; i<arr.length; i++) {',
-      '    total += arr[i];',
-      '  }',
-      '  return total;',
-      '}',
-      'sum([3,7,2]);',
-    ],
-    trace: [
-      { l: 8, v: {}, s: [], o: '> sum([3,7,2])' },
-      { l: 1, v: { arr: '[3,7,2]' }, s: ['sum(arr=[3,7,2])'], o: '' },
-      { l: 2, v: { arr: '[3,7,2]', total: '0' }, s: ['sum(arr=[3,7,2])'], o: '' },
-      { l: 3, v: { arr: '[3,7,2]', total: '0', i: '0' }, s: ['sum(...)'], o: 'i=0, 0<3 true' },
-      { l: 4, v: { arr: '[3,7,2]', total: '3', i: '0' }, s: ['sum(...)'], o: 'total += arr[0] → 3' },
-      { l: 3, v: { arr: '[3,7,2]', total: '3', i: '1' }, s: ['sum(...)'], o: 'i=1, 1<3 true' },
-      { l: 4, v: { arr: '[3,7,2]', total: '10', i: '1' }, s: ['sum(...)'], o: 'total += arr[1] → 10' },
-      { l: 3, v: { arr: '[3,7,2]', total: '10', i: '2' }, s: ['sum(...)'], o: 'i=2, 2<3 true' },
-      { l: 4, v: { arr: '[3,7,2]', total: '12', i: '2' }, s: ['sum(...)'], o: 'total += arr[2] → 12' },
-      { l: 3, v: { arr: '[3,7,2]', total: '12', i: '3' }, s: ['sum(...)'], o: 'i=3, 3<3 false — exit loop' },
-      { l: 6, v: { arr: '[3,7,2]', total: '12' }, s: ['sum(...)'], o: 'return 12' },
-      { l: 8, v: {}, s: [], o: '< 12' },
-    ],
-  },
-  factorial: {
-    lines: [
-      'function factorial(n) {',
-      '  if (n <= 1) return 1;',
-      '  return n * factorial(n-1);',
-      '}',
-      'factorial(4);',
-    ],
-    trace: [
-      { l: 5, v: {}, s: [], o: '> factorial(4)' },
-      { l: 1, v: { n: '4' }, s: ['factorial(4)'], o: '' },
-      { l: 2, v: { n: '4' }, s: ['factorial(4)'], o: '4<=1? false' },
-      { l: 3, v: { n: '4' }, s: ['factorial(4)'], o: 'need factorial(3)...' },
-      { l: 1, v: { n: '3' }, s: ['factorial(4)', 'factorial(3)'], o: '' },
-      { l: 2, v: { n: '3' }, s: ['factorial(4)', 'factorial(3)'], o: '3<=1? false' },
-      { l: 3, v: { n: '3' }, s: ['factorial(4)', 'factorial(3)'], o: 'need factorial(2)...' },
-      { l: 1, v: { n: '2' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)'], o: '' },
-      { l: 2, v: { n: '2' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)'], o: '2<=1? false' },
-      { l: 3, v: { n: '2' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)'], o: 'need factorial(1)...' },
-      { l: 1, v: { n: '1' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)', 'factorial(1)'], o: '' },
-      { l: 2, v: { n: '1' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)', 'factorial(1)'], o: '1<=1 true → return 1' },
-      { l: 3, v: { n: '2' }, s: ['factorial(4)', 'factorial(3)', 'factorial(2)'], o: '2 * 1 = 2, returns 2' },
-      { l: 3, v: { n: '3' }, s: ['factorial(4)', 'factorial(3)'], o: '3 * 2 = 6, returns 6' },
-      { l: 3, v: { n: '4' }, s: ['factorial(4)'], o: '4 * 6 = 24, returns 24' },
-      { l: 5, v: {}, s: [], o: '< 24' },
-    ],
-  },
-};
+interface StackFrame {
+  id: number;
+  fnName: string;
+  arg: number;
+  isBaseCase: boolean;
+}
 
-export const ExecutionArenaGame: React.FC<GameProps> = ({ onNavigate, onWin }) => {
-  const [activeProg, setActiveProg] = useState<'sumArr' | 'factorial'>('sumArr');
-  const [stepIndex, setStepIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [completed, setCompleted] = useState<boolean>(false);
+export const ExecutionArena: React.FC<ExecutionArenaProps> = ({ onComplete, onDamage }) => {
+  const [frames, setFrames] = useState<StackFrame[]>([
+    { id: 1, fnName: 'recurse_eval', arg: 5, isBaseCase: false },
+  ]);
+  const [depthLimit] = useState(8);
+  const [clearedFrames, setClearedFrames] = useState(0);
+  const [hearts, setHearts] = useState(5);
+  const [log, setLog] = useState('Execution cycle running. Monitor stack boundary.');
 
-  const prog = PROGS[activeProg];
-  const currentStep = prog.trace[stepIndex];
-
+  // Push frames over time simulating active execution
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setStepIndex((prev) => {
-          if (prev >= prog.trace.length - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
-          return prev + 1;
+    const interval = setInterval(() => {
+      setFrames((prev) => {
+        if (prev.length === 0) {
+          // Restart with a new call
+          return [{ id: Date.now(), fnName: 'recurse_eval', arg: Math.floor(Math.random() * 6) + 3, isBaseCase: false }];
+        }
+        if (prev.length >= depthLimit) {
+          // Overflow penalty!
+          setHearts((h) => {
+            const nextH = Math.max(0, h - 1);
+            if (onDamage) onDamage();
+            return nextH;
+          });
+          setLog('CRITICAL: StackOverflowError triggered! Buffer cleared.');
+          return [{ id: Date.now(), fnName: 'main_entry', arg: 4, isBaseCase: false }];
+        }
+
+        const top = prev[prev.length - 1];
+        if (top.arg <= 1) {
+          // Ready to pop
+          return prev;
+        }
+
+        // Spawn next recursive call
+        const nextArg = top.arg - 1;
+        return [
+          ...prev,
+          {
+            id: Date.now(),
+            fnName: 'recurse_eval',
+            arg: nextArg,
+            isBaseCase: nextArg <= 1,
+          },
+        ];
+      });
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [depthLimit, onDamage]);
+
+  // Handle emergency pop
+  const handlePop = () => {
+    setFrames((prev) => {
+      if (prev.length === 0) return prev;
+      const top = prev[prev.length - 1];
+      if (top.isBaseCase || top.arg <= 1) {
+        setClearedFrames((c) => c + 1);
+        setLog(`RESOLVED: Frame popped cleanly with return value.`);
+        return prev.slice(0, -1);
+      } else {
+        setHearts((h) => {
+          const nextH = Math.max(0, h - 1);
+          if (onDamage) onDamage();
+          return nextH;
         });
-      }, 800);
-    }
-    return () => clearInterval(timer);
-  }, [isPlaying, prog.trace.length]);
+        setLog(`ERROR: Premature pop! Frame arg ${top.arg} has not met base condition.`);
+        return prev;
+      }
+    });
+  };
 
+  // Handle base case insertion
+  const handleForceBaseCase = () => {
+    setFrames((prev) => {
+      if (prev.length === 0) return prev;
+      const copy = [...prev];
+      copy[copy.length - 1].isBaseCase = true;
+      copy[copy.length - 1].arg = 1;
+      setLog(`OVERRIDE: Base case return injected into active frame.`);
+      return copy;
+    });
+  };
+
+  // Win condition
   useEffect(() => {
-    if (stepIndex === prog.trace.length - 1 && !completed) {
-      setCompleted(true);
-      if (onWin) onWin('execution-arena');
+    if (clearedFrames >= 8) {
+      const stars = hearts >= 4 ? 3 : hearts >= 2 ? 2 : 1;
+      onComplete(stars, 200);
     }
-  }, [stepIndex, prog.trace.length, completed, onWin]);
-
-  const outputLog = prog.trace
-    .slice(0, stepIndex + 1)
-    .filter((s) => Boolean(s.o))
-    .map((s) => s.o);
+  }, [clearedFrames, hearts, onComplete]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 flex flex-col gap-6">
-      <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-xl shadow-sm">
-        <div>
-          <span className="text-label-sm font-label-sm text-secondary uppercase tracking-widest">Game 02</span>
-          <h1 className="text-headline-lg font-bold text-on-surface">Execution Arena</h1>
+    <div className="flex flex-col h-full w-full bg-[#0E1013] p-6 text-white font-mono select-none">
+      {/* Top Telemetry */}
+      <div className="flex justify-between items-center bg-[#15181E] border border-[#262C36] px-5 py-3 rounded-lg mb-6">
+        <span className="text-[#DE5C34] text-xs font-bold uppercase tracking-wider">GAME 02 // CALL STACK OVERDRIVE</span>
+        <div className="flex items-center gap-6 text-xs">
+          <div>RESOLVED FRAMES: <span className="text-[#3D8B66] font-bold">{clearedFrames} / 8</span></div>
+          <div>LIVES: <span className="text-red-400 font-bold">{'♥'.repeat(hearts)}{'♡'.repeat(Math.max(0, 5 - hearts))}</span></div>
         </div>
-        <button
-          className="px-4 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md cursor-pointer"
-          onClick={() => onNavigate('dashboard-quests', 'push_back')}
-        >
-          Exit
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 flex flex-col gap-4">
-          <div className="flex gap-2 bg-surface-container-low p-2 rounded-xl">
-            <button
-              className={`px-4 py-1.5 rounded-lg font-label-md text-label-md cursor-pointer ${
-                activeProg === 'sumArr' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'
-              }`}
-              onClick={() => {
-                setActiveProg('sumArr');
-                setStepIndex(0);
-                setIsPlaying(false);
-              }}
-            >
-              Sum Array (Loop)
-            </button>
-            <button
-              className={`px-4 py-1.5 rounded-lg font-label-md text-label-md cursor-pointer ${
-                activeProg === 'factorial' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'
-              }`}
-              onClick={() => {
-                setActiveProg('factorial');
-                setStepIndex(0);
-                setIsPlaying(false);
-              }}
-            >
-              Factorial (Recursion)
-            </button>
+      <div className="flex-1 grid grid-cols-12 gap-6">
+        {/* Left: Code Viewer */}
+        <div className="col-span-7 bg-[#12151B] border border-[#262C36] rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div className="text-xs text-[#8C94A4] border-b border-[#262C36] pb-2 mb-3">subroutine_trace.py</div>
+            <pre className="text-xs text-[#F1F3F7] leading-relaxed space-y-1">
+              <div><span className="text-purple-400">def</span> <span className="text-yellow-300">recurse_eval</span>(n: <span className="text-blue-300">int</span>):</div>
+              <div className="pl-4 text-gray-500"># Injected base case condition:</div>
+              <div className="pl-4"><span className="text-purple-400">if</span> n &lt;= 1:</div>
+              <div className="pl-8 text-green-400">return 1</div>
+              <div className="pl-4 text-gray-500"># Danger: Spawns recursive frame</div>
+              <div className="pl-4"><span className="text-purple-400">return</span> n * recurse_eval(n - 1)</div>
+            </pre>
           </div>
-
-          <div className="bg-surface-container-lowest p-4 rounded-xl font-code-block text-code-block relative">
-            {prog.lines.map((line, idx) => {
-              const isCurrent = currentStep.l === idx + 1;
-              return (
-                <div
-                  key={idx}
-                  className={`flex gap-4 px-2 py-1 rounded transition-colors ${
-                    isCurrent ? 'bg-primary/20 border-l-2 border-primary text-primary' : 'text-on-surface'
-                  }`}
-                >
-                  <span className="text-outline w-6 text-right select-none">{idx + 1}</span>
-                  <pre className="font-code-block">{line}</pre>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-xl">
-            <div className="flex gap-2">
-              <button
-                className="px-3 py-1.5 rounded bg-surface-container text-on-surface font-label-md text-label-md cursor-pointer"
-                onClick={() => {
-                  setStepIndex(0);
-                  setIsPlaying(false);
-                }}
-              >
-                Reset
-              </button>
-              <button
-                disabled={stepIndex === 0}
-                className="px-3 py-1.5 rounded bg-surface-container text-on-surface font-label-md text-label-md disabled:opacity-40 cursor-pointer"
-                onClick={() => setStepIndex((prev) => Math.max(0, prev - 1))}
-              >
-                ◀ Back
-              </button>
-              <button
-                className="px-4 py-1.5 rounded bg-tertiary text-on-tertiary font-label-md text-label-md cursor-pointer"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying ? 'Pause' : 'Play'}
-              </button>
-              <button
-                disabled={stepIndex === prog.trace.length - 1}
-                className="px-3 py-1.5 rounded bg-surface-container text-on-surface font-label-md text-label-md disabled:opacity-40 cursor-pointer"
-                onClick={() => setStepIndex((prev) => Math.min(prog.trace.length - 1, prev + 1))}
-              >
-                Next ▶
-              </button>
-            </div>
-            <span className="text-label-sm font-label-sm font-code-inline text-outline">
-              Step {stepIndex + 1} / {prog.trace.length}
-            </span>
+          <div className="bg-[#15181E] p-3 rounded-lg border border-[#262C36] text-xs text-[#E5A93C]">
+            STATUS: {log}
           </div>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          <div className="bg-surface-container-low p-4 rounded-xl shadow-sm">
-            <span className="text-label-sm font-label-sm text-outline uppercase tracking-wider">Variables</span>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Object.keys(currentStep.v).length === 0 ? (
-                <span className="text-outline text-label-sm">— Empty —</span>
-              ) : (
-                Object.entries(currentStep.v).map(([k, val]) => (
-                  <span key={k} className="px-2 py-1 rounded bg-surface-container font-code-inline text-code-inline">
-                    <strong className="text-secondary">{k}</strong>: <span className="text-tertiary">{val}</span>
+        {/* Right: Stack Column Visualization */}
+        <div className="col-span-5 bg-[#12151B] border border-[#262C36] rounded-xl p-5 flex flex-col justify-between">
+          <div className="flex justify-between items-center text-xs text-[#8C94A4] border-b border-[#262C36] pb-2">
+            <span>CALL STACK BUFFER</span>
+            <span className={frames.length >= 6 ? 'text-red-400 font-bold animate-pulse' : 'text-[#3D8B66]'}>
+              {frames.length} / {depthLimit} MAX DEPTH
+            </span>
+          </div>
+
+          {/* Stack Cylinder */}
+          <div className="flex-1 flex flex-col-reverse justify-start gap-2 py-4 px-2 overflow-hidden">
+            {frames.map((f, idx) => (
+              <div
+                key={f.id}
+                className={`p-2.5 rounded-lg border text-xs flex justify-between items-center transition-all ${
+                  idx === frames.length - 1
+                    ? 'border-[#DE5C34] bg-[#DE5C34]/20 shadow-[0_0_12px_rgba(222,92,52,0.3)]'
+                    : 'border-[#262C36] bg-[#15181E]'
+                }`}
+              >
+                <div>
+                  <span className="text-[#DE5C34] font-bold">#{idx + 1} </span>
+                  <span>{f.fnName}({f.arg})</span>
+                </div>
+                {f.isBaseCase ? (
+                  <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/40">
+                    RETURN READY
                   </span>
-                ))
-              )}
-            </div>
+                ) : (
+                  <span className="text-[10px] text-gray-500">ACTIVE EXECUTION</span>
+                )}
+              </div>
+            ))}
           </div>
 
-          <div className="bg-surface-container-low p-4 rounded-xl shadow-sm">
-            <span className="text-label-sm font-label-sm text-outline uppercase tracking-wider">Call Stack</span>
-            <div className="mt-2 flex flex-col-reverse gap-1.5">
-              {currentStep.s.length === 0 ? (
-                <span className="text-outline text-label-sm">— Empty —</span>
-              ) : (
-                currentStep.s.map((frame, fIdx) => (
-                  <div
-                    key={fIdx}
-                    className={`p-2 rounded font-code-inline text-label-sm ${
-                      fIdx === currentStep.s.length - 1
-                        ? 'bg-primary/20 border border-primary text-primary'
-                        : 'bg-surface-container text-on-surface-variant'
-                    }`}
-                  >
-                    {frame}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="bg-surface-container-low p-4 rounded-xl shadow-sm">
-            <span className="text-label-sm font-label-sm text-outline uppercase tracking-wider">Console Output</span>
-            <div className="mt-2 bg-surface-container-lowest p-3 rounded font-code-inline text-label-sm text-secondary min-h-[90px] max-h-[140px] overflow-y-auto">
-              {outputLog.map((line, oIdx) => (
-                <div key={oIdx}>{line}</div>
-              ))}
-            </div>
+          {/* Tactical Controls */}
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#262C36]">
+            <button
+              onClick={handleForceBaseCase}
+              className="bg-[#15181E] border border-amber-500/50 hover:bg-amber-500/10 text-amber-300 py-3 rounded-lg text-xs font-bold transition-all"
+            >
+              [F] Force Base Case
+            </button>
+            <button
+              onClick={handlePop}
+              className="bg-[#DE5C34] hover:bg-[#DE5C34]/80 text-white py-3 rounded-lg text-xs font-bold transition-all shadow"
+            >
+              [POP] Unwind Stack
+            </button>
           </div>
         </div>
       </div>
