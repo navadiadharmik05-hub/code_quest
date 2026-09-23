@@ -56,7 +56,7 @@ export const VIDEO_BRIEFINGS: VideoBriefing[] = [
     gameLabel: 'FOR GAME 03',
     title: 'Bubble Sort & Pairwise Inversions Explained',
     duration: '18:05',
-    youtubeId: 'kPRA0W1kECg',
+    youtubeId: 're9ytVtt5zg',
     summary: 'Master adjacent pairwise comparisons and bubble sort loop termination invariants.',
     schematicLines: [
       '> CMP arr[j] > arr[j+1]',
@@ -113,7 +113,7 @@ export const VIDEO_BRIEFINGS: VideoBriefing[] = [
     gameLabel: 'FOR GAME 06',
     title: 'Stacks & Queues: Memory Buffer Mechanics',
     duration: '17:22',
-    youtubeId: 'wjI1WNc4g08',
+    youtubeId: 'A3ZUpyrnCbM',
     summary: 'Differentiate LIFO call stacks from FIFO task queues under buffer constraints.',
     schematicLines: [
       '> BUFFER_MODE: FIFO_RING',

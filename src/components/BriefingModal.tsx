@@ -109,10 +109,23 @@ export function BriefingModal({ briefing, onClose, onLaunchQuest }: BriefingModa
             </ul>
           </div>
 
-          {/* Duration chip */}
-          <div className="flex items-center gap-1.5" style={{ color: '#6E788A' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
-            <span className="text-xs font-mono">{briefing.duration}</span>
+          {/* Metadata Row: Duration & External YouTube Link */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-1.5" style={{ color: '#6E788A' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
+              <span className="text-xs font-mono">{briefing.duration}</span>
+            </div>
+
+            <a
+              href={`https://www.youtube.com/watch?v=${briefing.youtubeId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs font-mono transition-colors hover:underline"
+              style={{ color: '#DE5C34' }}
+            >
+              ▶ Watch on YouTube
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>open_in_new</span>
+            </a>
           </div>
         </div>
 
